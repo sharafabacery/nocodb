@@ -242,6 +242,20 @@ export function useViewFilters(
     }
   }
 
+  const findFilterById = (filters: ColumnFilterType[] = [], parentId: string): ColumnFilterType | null => {
+    for (const filter of filters) {
+      if (filter.id === parentId || filter.tmp_id === parentId) {
+        return filter
+      }
+
+      if (filter.children?.length) {
+        const found = findFilterById(filter.children, parentId)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   const loadAllChildFilters = async (filters: ColumnFilterType[]) => {
     // Array to store promises of child filter loading
     const promises = []
@@ -420,21 +434,29 @@ export function useViewFilters(
         if (Object.keys(delta).length > 0) {
           addUndo({
             undo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
-                if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
+
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
               args: [Object.keys(delta)[0], Object.values(delta)[0]],
             },
             redo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
-                if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
+
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
               args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof ColumnFilterType]],
