@@ -119,6 +119,8 @@ const scrollable = ref<HTMLElement | undefined>()
 
 const tableHeader = ref<HTMLElement | undefined>()
 
+const groupByTableRef = ref()
+
 const fullPage = computed<boolean>(() => {
   return props.fullPage ?? (tableHeader.value?.offsetWidth ?? 0) > (props.viewWidth ?? 0)
 })
@@ -515,6 +517,7 @@ async function openNewRecordHandler() {
             </template>
             <GroupByTable
               v-if="!grp.nested && grp.rows"
+              :ref="(el) => (groupByTableRef = el)"
               :group="grp"
               :max-depth="maxDepth"
               :depth="depth"
@@ -560,6 +563,7 @@ async function openNewRecordHandler() {
     custom-label="groups"
     :depth="maxDepth"
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
+    :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   />
 
   <LazySmartsheetPagination
@@ -577,6 +581,7 @@ async function openNewRecordHandler() {
         : ''
     }`"
     :fixed-size="undefined"
+    :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   ></LazySmartsheetPagination>
 
   <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
