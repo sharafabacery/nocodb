@@ -38,6 +38,13 @@ interface Emits {
       index: number
     },
   ): void
+  (
+    event: 'copy',
+    model: {
+      filter: ColumnFilterType
+      index: number
+    },
+  ): void
 }
 const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
@@ -47,6 +54,8 @@ const meta = inject(MetaInj, ref())
 
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
+
+const { isCopyFilterEnabled } = useBetaFeatureToggle()
 
 const logicalOps = [
   { value: 'and', text: t('general.and') },
@@ -343,6 +352,14 @@ const onDelete = () => {
     index: props.index,
   })
 }
+
+const onCopy = () => {
+  emits('copy', {
+    filter: { ...vModel.value },
+    index: props.index,
+  })
+}
+
 async function onResetDynamicField() {
   const prevValue = vModel.value.dynamic
   vModel.value.dynamic = false
@@ -609,6 +626,33 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
+      <div v-if="!vModel.readOnly && !disabled && isCopyFilterEnabled" :class="{ 'cursor-wait': isLoadingFilter }">
+        <NcButton
+          :key="index"
+          v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          :disabled="isLockedView"
+          class="nc-filter-item-copy-btn cursor-pointer"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          @click.stop="onCopy()"
+        >
+          <GeneralIcon icon="copy" />
+        </NcButton>
+      </div>
+      <div v-if="!isDisabled" :class="{ 'cursor-wait': isLoadingFilter }">
+        <NcButton
+          v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          :shadow="false"
+          :disabled="!visibleFilterCount || visibleFilterCount <= 1"
+        >
+          <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+        </NcButton>
+      </div>
     </template>
   </div>
 </template>
@@ -618,8 +662,10 @@ const onChangeToDynamic = async () => {
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
-  @apply text-gray-600 hover:text-gray-800;
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {

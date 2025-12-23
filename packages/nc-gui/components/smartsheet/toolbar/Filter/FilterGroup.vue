@@ -195,6 +195,7 @@ const addFilter = async () => {
 const addFilterGroup = async () => {
   return innerAdd(true)
 }
+
 const onFilterDelete = async (
   event: {
     filter: ColumnFilterType
@@ -228,6 +229,98 @@ const onFilterDelete = async (
       fk_parent_id: props.fkParentId,
       prevValue,
     })
+  }
+}
+
+const onFilterCopy = async (
+  event: {
+    filter: ColumnFilterType
+    index: number
+  },
+  index: number,
+) => {
+  const prevValue = [...vModel.value]
+
+  if (props.handler?.copyFilter) {
+    await props.handler?.copyFilter({
+      type: 'copy',
+      filter: vModel.value[index],
+      filters: vModel.value,
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  } else {
+    const copiedFilter = vModel.value.splice(index, 1)
+
+    emits('change', {
+      type: 'copy',
+      filter: copiedFilter,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  }
+}
+
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+  /**
+   * If event has moved property that means reorder is on same level
+   */
+  if (event.moved) {
+    const {
+      moved: { newIndex = 0, oldIndex = 0, element },
+    } = event
+
+    if (!element || (!element.id && !element.tmp_id) || visibleFilters.value.length === 1) return
+
+    const oldOrder = element.order
+
+    let nextOrder: number
+
+    // set new order value based on the new order of the items
+    if (visibleFilters.value.length - 1 === newIndex) {
+      // If moving to the end, set nextOrder greater than the maximum order in the list
+      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
+    } else if (newIndex === 0) {
+      // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
+    } else {
+      nextOrder =
+        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
+          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
+        2
+    }
+
+    const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+    element.order = _nextOrder
+
+    const elementIndex =
+      vModel.value.findIndex((item) => item?.id === element?.id) ||
+      vModel.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+
+    if (props.handler?.rowChange) {
+      props.handler.rowChange({
+        filter: element,
+        type: 'order',
+        prevValue: oldOrder,
+        value: _nextOrder,
+        index: elementIndex,
+      })
+    }
   }
 }
 // #endregion
@@ -353,6 +446,7 @@ const onFilterDelete = async (
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>
@@ -504,8 +598,10 @@ const onFilterDelete = async (
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
-  @apply text-gray-600 hover:text-gray-800;
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
