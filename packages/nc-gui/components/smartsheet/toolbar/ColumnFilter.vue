@@ -827,7 +827,6 @@ defineExpose({
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       :list="filters"
       :disabled="!isReorderEnabled"
-      item-key="id"
       group="nc-column-filters"
       ghost-class="bg-gray-50"
       draggable=".nc-column-filter-item"
