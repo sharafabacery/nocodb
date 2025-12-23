@@ -162,6 +162,14 @@ const FEATURES = [
     version: 3,
     isEE: true,
   },
+  {
+    id: 'copy_filter',
+    title: 'Copy Filter',
+    description: 'Copy filter feature allows you to copy filter in same filter group.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
@@ -271,6 +279,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     saveFeatures()
   }
 
+  const isCopyFilterEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.COPY_FILTER))
+
   return {
     features,
     toggleFeature,
@@ -278,5 +288,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     isEngineeringModeOn,
     isExperimentalFeatureModalOpen,
     initializeFeatures,
+    isCopyFilterEnabled,
   }
 })
