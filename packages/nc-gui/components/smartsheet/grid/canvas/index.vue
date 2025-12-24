@@ -2891,8 +2891,8 @@ watch(
             :class="{
               [`row-height-${rowHeightEnum ?? 1}`]: true,
               'on-stick ': isClamped.isStuck,
-              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
-              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+              'border-nc-border-brand': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && (!editEnabled.isCellEditable || editEnabled.isSyncedColumn),
             }"
           >
             <div
