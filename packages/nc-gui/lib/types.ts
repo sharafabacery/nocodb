@@ -525,6 +525,7 @@ interface CellRenderer {
     formula?: boolean
     allowLocalUrl?: boolean
     t: Composer['t']
+    getColor: GetColorType
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent

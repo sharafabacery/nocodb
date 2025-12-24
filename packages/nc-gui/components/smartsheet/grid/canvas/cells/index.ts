@@ -407,6 +407,7 @@ export function useGridCellHandler(params: {
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
         t,
+        getColor
       })
     }
     return false

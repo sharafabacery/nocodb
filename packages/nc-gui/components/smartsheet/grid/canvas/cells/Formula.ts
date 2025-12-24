@@ -134,6 +134,7 @@ export const FormulaCellRenderer: CellRenderer = {
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
+          getColor,
         })
         const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
         if (hoveredBox && selected) {
@@ -176,7 +177,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition } = props
+    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition, getColor } = props
     if (!selected && !isDoubleClick) return false
 
     const colObj = column.columnObj
@@ -203,6 +204,7 @@ export const FormulaCellRenderer: CellRenderer = {
             },
           },
           formula: true,
+          getColor,
         })
       }
     }
@@ -231,6 +233,7 @@ export const FormulaCellRenderer: CellRenderer = {
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
+          getColor,
         })
 
         // If clicked on url or other texts
